@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const ByteBankApp());
@@ -13,8 +14,8 @@ class ByteBankApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Scaffold(
-        body: TransactionForm(),
+      home: const Scaffold(
+        body: TransactionList(),
       ),
     );
   }
@@ -49,19 +50,22 @@ class TransactionForm extends StatelessWidget {
           ElevatedButton(
             child: const Text('Confirmar'),
             onPressed: () {
-              final int? accountNumber =
-                  int.tryParse(_accountNumberController.text);
-              final double? value =
-                  double.tryParse(_valueNumberController.text);
-              if (![accountNumber, value].contains(null)) {
-                final createdTransaction =
-                    Transaction(value: value!, accountNumber: accountNumber!);
-              }
+              createTransaction(context);
             },
           )
         ],
       ),
     );
+  }
+
+  void createTransaction(BuildContext context) {
+    final int? accountNumber = int.tryParse(_accountNumberController.text);
+    final double? value = double.tryParse(_valueNumberController.text);
+    if (accountNumber != null && value != null) {
+      final createdTransaction =
+          Transaction(value: value, accountNumber: accountNumber);
+      Navigator.pop(context, createdTransaction);
+    }
   }
 }
 
@@ -85,6 +89,7 @@ class Editor extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: TextField(
         controller: controller,
+        inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9]'))],
         style: const TextStyle(fontSize: 24),
         decoration: InputDecoration(
           icon: icon != null ? Icon(icon) : null,
@@ -97,24 +102,43 @@ class Editor extends StatelessWidget {
   }
 }
 
-class ListTransaction extends StatelessWidget {
-  const ListTransaction({Key? key}) : super(key: key);
+class TransactionList extends StatefulWidget {
+  const TransactionList({Key? key}) : super(key: key);
+
+  @override
+  State<TransactionList> createState() => _TransactionListState();
+}
+
+class _TransactionListState extends State<TransactionList> {
+  final List<Transaction> transactions = List.empty(growable: true);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transferências'),
+        title: const Text('Transferênciassss'),
       ),
-      body: Column(
-        children: [
-          TransactionItem(Transaction(value: 500, accountNumber: 12546)),
-          TransactionItem(Transaction(value: 248, accountNumber: 12946)),
-          TransactionItem(Transaction(value: 6987, accountNumber: 12366)),
-        ],
+      body: ListView.builder(
+        itemCount: transactions.length,
+        itemBuilder: (context, index) {
+          final transaction = transactions[index];
+          return TransactionItem(transaction);
+        },
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return TransactionForm();
+              },
+            ),
+          ).then((receivedTransaction) {
+            transactions.add(receivedTransaction);
+            setState(() {});
+          });
+        },
       ),
     );
   }
