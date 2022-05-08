@@ -12,20 +12,24 @@ class ByteBankApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.green[900],
       ),
-      home: const Scaffold(
-        body: TransactionList(),
-      ),
+      home: const TransactionList(),
     );
   }
 }
 
-class TransactionForm extends StatelessWidget {
-  TransactionForm({Key? key}) : super(key: key);
+class TransactionForm extends StatefulWidget {
+  const TransactionForm({Key? key}) : super(key: key);
 
+  @override
+  State<TransactionForm> createState() => _TransactionFormState();
+}
+
+class _TransactionFormState extends State<TransactionForm> {
   final TextEditingController _accountNumberController =
       TextEditingController();
+
   final TextEditingController _valueNumberController = TextEditingController();
 
   @override
@@ -34,26 +38,28 @@ class TransactionForm extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ByteBank'),
       ),
-      body: Column(
-        children: [
-          Editor(
-            controller: _accountNumberController,
-            hintText: '0000',
-            labelText: 'Número da Conta',
-          ),
-          Editor(
-            controller: _valueNumberController,
-            hintText: '0,00',
-            labelText: 'Valor',
-            icon: Icons.monetization_on,
-          ),
-          ElevatedButton(
-            child: const Text('Confirmar'),
-            onPressed: () {
-              createTransaction(context);
-            },
-          )
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Editor(
+              controller: _accountNumberController,
+              hintText: '0000',
+              labelText: 'Número da Conta',
+            ),
+            Editor(
+              controller: _valueNumberController,
+              hintText: '0,00',
+              labelText: 'Valor',
+              icon: Icons.monetization_on,
+            ),
+            ElevatedButton(
+              child: const Text('Confirmar'),
+              onPressed: () {
+                createTransaction(context);
+              },
+            )
+          ],
+        ),
       ),
     );
   }
@@ -115,7 +121,7 @@ class _TransactionListState extends State<TransactionList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transferênciassss'),
+        title: const Text('Transferências'),
       ),
       body: ListView.builder(
         itemCount: transactions.length,
@@ -131,12 +137,15 @@ class _TransactionListState extends State<TransactionList> {
             context,
             MaterialPageRoute(
               builder: (context) {
-                return TransactionForm();
+                return const TransactionForm();
               },
             ),
           ).then((receivedTransaction) {
-            transactions.add(receivedTransaction);
-            setState(() {});
+            if (receivedTransaction != null) {
+              setState(() {
+                transactions.add(receivedTransaction);
+              });
+            }
           });
         },
       ),
